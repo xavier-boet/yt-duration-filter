@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello ChannelController!{% endblock %}
+
+{% block body %}
+<div class="example-wrapper">
+    <ul>
+        {% for channel in channels %}
+        <li>
+            <a href="{{ 'http://' ~ channel.handle }}">{{ channel.title }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+twig:
+    file_name_pattern: '*.twig'
+    globals:
+        youtube_url_base: '%env(YOUTUBE_URL_BASE)%'
+        youtube_url_avatar: '%env(YOUTUBE_URL_AVATAR)%'
+
+when@test:
+    twig:
+        strict_variables: true
