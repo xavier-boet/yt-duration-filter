@@ -20,8 +20,7 @@ class VideoRepository extends ServiceEntityRepository
     public function __construct(
         ManagerRegistry $registry,
         private PaginatorInterface $paginator
-    )
-    {
+    ) {
         parent::__construct($registry, Video::class);
     }
 
@@ -36,7 +35,7 @@ class VideoRepository extends ServiceEntityRepository
     private function excludeViewed(QueryBuilder $qb): QueryBuilder
     {
         return $qb->andWhere('v.isViewed = false');
-    }    
+    }
 
     private function orderByPublishedAt(QueryBuilder $qb): QueryBuilder
     {
@@ -56,9 +55,9 @@ class VideoRepository extends ServiceEntityRepository
         foreach ($rssVideos as $youtubeId => $entry) {
             $video = new Video();
             $video->setChannel($channel)
-                  ->setYoutubeId($youtubeId)
-                  ->setTitle($entry['title'])
-                  ->setPublishedAt(new \DateTimeImmutable($entry['publishedAt']));
+                ->setYoutubeId($youtubeId)
+                ->setTitle($entry['title'])
+                ->setPublishedAt(new \DateTimeImmutable($entry['publishedAt']));
 
             $em->persist($video);
         }
@@ -96,38 +95,43 @@ class VideoRepository extends ServiceEntityRepository
      * @param string|null $durationFilter The duration range filter (e.g., "10-30", "60+").
      * @return Video[]
      */
-    public function findByDuration(?string $durationFilter): QueryBuilder
+    public function findVideos(?string $durationFilter = null, ?Channel $channel = null): QueryBuilder
     {
         $qb = $this->createQueryBuilder('v');
         $this->excludeNullDuration($qb);
         $this->excludeViewed($qb);
-    
+
         if ($durationFilter) {
             if ($durationFilter === '60+') {
                 $qb->andWhere('v.duration > 60');
             } else {
                 $parts = explode('-', $durationFilter);
-                
+
                 if (count($parts) === 2 && is_numeric($parts[0]) && is_numeric($parts[1])) {
                     $min = (int) $parts[0];
                     $max = (int) $parts[1];
-    
+
                     if ($min > $max) {
                         [$min, $max] = [$max, $min];
                     }
-    
+
                     $qb->andWhere('v.duration BETWEEN :min AND :max')
-                       ->setParameter('min', $min)
-                       ->setParameter('max', $max);
+                        ->setParameter('min', $min)
+                        ->setParameter('max', $max);
                 }
             }
         }
-    
+
         $this->orderByPublishedAt($qb);
-    
+
+        if ($channel) {
+            $qb->andWhere('v.channel = :channel')
+                ->setParameter('channel', $channel);
+        }
+
         return $qb;
     }
-    
+
 
     /**
      * Retrieves videos based on an array of YouTube IDs.

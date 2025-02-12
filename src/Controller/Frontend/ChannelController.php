@@ -2,21 +2,33 @@
 
 namespace App\Controller\Frontend;
 
-use App\Repository\ChannelRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Entity\Channel;
+use App\Service\VideoPaginationService;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/channels')]
-final class ChannelController extends AbstractController
+final class ChannelController extends BaseVideoController
 {
-    #[Route('/', name: 'app_channel')]
-    public function index(ChannelRepository $channelRepository): Response
-    {
-        $channels = $channelRepository->findBy([], ['title' => 'ASC']);
+    public function __construct(private readonly VideoPaginationService $videoPaginationService) {}
 
-        return $this->render('channel/index.html.twig', [
-            'channels' => $channels
+    #[Route('/{handle}', name: 'app_channel', requirements: ['handle' => '@[\w.\-·]+'])]
+    public function index(
+        Request $request, 
+        #[MapEntity(mapping: ['handle' => 'handle'])]
+        Channel $channel): Response
+    {
+        $form = $this->getForm($request);
+        $pagination = $this->videoPaginationService->getPaginatedVideos(
+            $request,
+            $request->query->get('duration'),
+            $channel
+        );
+
+        return $this->render('home/index.html.twig', [
+            'form' => $form->createView(),
+            'pagination' => $pagination,
         ]);
     }
 }

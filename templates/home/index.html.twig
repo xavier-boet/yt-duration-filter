@@ -63,8 +63,8 @@
                         <div class="mt-auto"> 
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="btn-group">
-                                    <a href="{{ youtube_url_base ~ video.channel.handle }}"
-                                        class="btn btn-sm btn-outline-secondary" target="_blank">{{ video.channel.title
+                                    <a href="{{ path('app_channel', {handle: video.channel.handle}) }}"
+                                        class="btn btn-sm btn-outline-secondary">{{ video.channel.title
                                         }}</a>
                                 </div>
                                 <small class="text-body-secondary">{{ video.duration }} mins</small>

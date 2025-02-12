@@ -2,42 +2,22 @@
 
 namespace App\Controller\Frontend;
 
-use App\Form\VideoFilterType;
-use App\Repository\VideoRepository;
-use App\Service\YouTubeApiService;
-use App\Service\YouTubeService;
-use Knp\Component\Pager\PaginatorInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Service\VideoPaginationService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class HomeController extends AbstractController
+final class HomeController extends BaseVideoController
 {
-    // #[Route('/test', name: 'app_test')]
-    // public function test(
-    //     YouTubeApiService $youTubeApiService,
-    //     VideoRepository $videoRepository,
-    //     YouTubeService $youTubeService
-    //     )
-    // {
-    //     // $entries = $videoRepository->getEntriesWithoutDuration();
-    //     // $youTubeService->setVideoDetails($entries);
-    //     //$youTubeApiService->fetchChannelDetails('https://www.youtube.com/@benoit_lecorre');
-    // }
+    public function __construct(private readonly VideoPaginationService $videoPaginationService) {}
 
     #[Route('/', name: 'app_home')]
-    public function index(Request $request, VideoRepository $videoRepository, PaginatorInterface $paginator): Response
+    public function index(Request $request): Response
     {
-        $form = $this->createForm(VideoFilterType::class);
-        $form->handleRequest($request);
-
-        $durationFilter = $request->query->get('duration');
-        $queryBuilder = $videoRepository->findByDuration($durationFilter);
-
-        $pagination = $paginator->paginate(
-            $queryBuilder,
-            $request->query->getInt('page', 1)
+        $form = $this->getForm($request);
+        $pagination = $this->videoPaginationService->getPaginatedVideos(
+            $request,
+            $request->query->get('duration')
         );
 
         return $this->render('home/index.html.twig', [
@@ -45,6 +25,4 @@ final class HomeController extends AbstractController
             'pagination' => $pagination,
         ]);
     }
-
-    //search
 }
