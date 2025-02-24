@@ -3,6 +3,7 @@
 namespace App\Controller\Frontend;
 
 use App\Entity\Channel;
+use App\Exception\InvalidPageException;
 use App\Service\VideoPaginationService;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,16 +16,21 @@ final class ChannelController extends BaseVideoController
 
     #[Route('/{handle}', name: 'app_channel', requirements: ['handle' => '@[\w.\-·]+'])]
     public function index(
-        Request $request, 
+        Request $request,
         #[MapEntity(mapping: ['handle' => 'handle'])]
-        Channel $channel): Response
-    {
+        Channel $channel
+    ): Response {
         $form = $this->getForm($request);
-        $pagination = $this->videoPaginationService->getPaginatedVideos(
-            $request,
-            $request->query->get('duration'),
-            $channel
-        );
+
+        try {
+            $pagination = $this->videoPaginationService->getPaginatedVideos(
+                $request,
+                $request->query->get('duration'),
+                $channel
+            );
+        } catch (InvalidPageException) {
+            return $this->redirectToRoute('app_channel', ['handle' => $channel->getHandle()]);
+        }
 
         return $this->render('home/index.html.twig', [
             'form' => $form->createView(),

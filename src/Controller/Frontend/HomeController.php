@@ -2,6 +2,7 @@
 
 namespace App\Controller\Frontend;
 
+use App\Exception\InvalidPageException;
 use App\Service\VideoPaginationService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,10 +16,15 @@ final class HomeController extends BaseVideoController
     public function index(Request $request): Response
     {
         $form = $this->getForm($request);
-        $pagination = $this->videoPaginationService->getPaginatedVideos(
-            $request,
-            $request->query->get('duration')
-        );
+
+        try {
+            $pagination = $this->videoPaginationService->getPaginatedVideos(
+                $request,
+                $request->query->get('duration')
+            );
+        } catch (InvalidPageException) {
+            return $this->redirectToRoute('app_home');
+        }
 
         return $this->render('home/index.html.twig', [
             'form' => $form->createView(),
